@@ -14,8 +14,8 @@ type Entry struct {
 	AllowVerb string `yaml:"allowverb,omitempty"`
 }
 
-// EnsureVerb Ensures a valid verb is given for generate-allow configurations
-// defaulting to "allow" it was configured empty
+// EnsureVerb ensures a verb is given for generate-allow configurations
+// defaulting to "allow" if it was configured empty
 func (e *Entry) EnsureVerb() string {
 	if e.AllowVerb == "" {
 		return "allow"
@@ -24,6 +24,8 @@ func (e *Entry) EnsureVerb() string {
 	return e.AllowVerb
 }
 
+// EnsureType ensures a type is given for the generate-allow configurations
+// defaulting to "A" if it was configured empty
 func (e *Entry) EnsureType() string {
 	if len(e.Type) == 0 {
 		return "A"
@@ -32,8 +34,26 @@ func (e *Entry) EnsureType() string {
 	return e.Type
 }
 
-func (e *Entry) RenderAllowLine(addrs []net.IP) (error, string) {
-	if len(addrs) == 0 {
+// EnsureValidMask ensure a valid mask is given for configurations
+// To avoid nginx configuration warnings, special combinations are handled :
+// for A (IPv4) entries and masks length of 32 a 0 mask is returned
+// for AAAA (IPv6) entries and masks length of 128 a 0 mask is returned
+func (e *Entry) EnsureValidMask() int {
+	lineType := e.EnsureType()
+
+	if lineType == "A" && e.Mask == 32 {
+		return 0
+	}
+
+	if lineType == "AAAA" && e.Mask == 128 {
+		return 0
+	}
+	return e.Mask
+}
+
+// RenderAllowLine Renders a line for the host for a generate-allow generation using [resolved] addresses
+func (e *Entry) RenderAllowLine(resolved []net.IP) (error, string) {
+	if len(resolved) == 0 {
 		return errors.New("no addresses resolved"), ""
 	}
 
@@ -47,19 +67,11 @@ func (e *Entry) RenderAllowLine(addrs []net.IP) (error, string) {
 		return errors.New("invalid dns type \"" + lineType + "\""), ""
 	}
 
-	maskLen := e.Mask
-
-	if lineType == "A" && maskLen == 32 {
-		maskLen = 0
-	}
-
-	if lineType == "AAAA" && maskLen == 128 {
-		maskLen = 0
-	}
+	maskLen := e.EnsureValidMask()
 
 	var sb strings.Builder
 
-	for _, addr := range addrs {
+	for _, addr := range resolved {
 		if maskLen > 0 {
 			addr = addr.Mask(net.CIDRMask(maskLen, 8*len(addr)))
 		}
@@ -68,14 +80,16 @@ func (e *Entry) RenderAllowLine(addrs []net.IP) (error, string) {
 			continue
 		}
 
-		if len(addr) == net.IPv4len && lineType == "A" ||
-			len(addr) == net.IPv6len && lineType == "AAAA" {
+		switch {
+		case len(addr) == net.IPv4len && lineType == "A":
+		case len(addr) == net.IPv6len && lineType == "AAAA":
 			sb.WriteString(e.EnsureVerb() + " " + addr.String())
 			if maskLen > 0 {
 				sb.WriteString("/" + strconv.Itoa(maskLen))
 			}
-			sb.WriteString("; # " + e.Dns + "[" + e.Type + "]\n")
-		} else {
+			sb.WriteString("; # " + e.Dns + " [" + e.Type + "]\n")
+			break
+		default:
 			continue
 		}
 	}
