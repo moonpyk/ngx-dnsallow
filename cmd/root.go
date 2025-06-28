@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/viper"
 	"log/slog"
+	"moonpyk.net/ngxdnsallow/pkg"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -13,10 +14,21 @@ var (
 	rootCmd = &cobra.Command{
 		Use: "ngxdnsallow",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			slog.SetLogLoggerLevel(slog.LevelDebug)
+			levelString := cmd.Flag("log.level").Value.String()
+			level := slog.LevelInfo
+
+			if len(levelString) > 0 {
+				if err := level.UnmarshalText([]byte(levelString)); err != nil {
+					slog.Error("invalid log-level", "level", levelString)
+					os.Exit(pkg.ExitInvalidConfiguration)
+				}
+			}
+
+			slog.SetLogLoggerLevel(level)
+
 			if err := rootConfig.ReadInConfig(); err != nil {
 				slog.Error(err.Error())
-				os.Exit(1)
+				os.Exit(pkg.ExitInvalidConfiguration)
 			}
 		},
 	}
@@ -35,7 +47,10 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.PersistentFlags().String("log.level", "info", "Minimum log level")
+
 	rootConfig.SetConfigType("yaml")
 	rootConfig.SetConfigName("ngxdnsallow")
 	rootConfig.AddConfigPath(".")
+	rootConfig.AddConfigPath("/etc/")
 }

@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"log/slog"
+	"moonpyk.net/ngxdnsallow/pkg"
 	"moonpyk.net/ngxdnsallow/pkg/config"
 	"net"
 	"os"
@@ -13,11 +14,12 @@ var (
 	generateAllowCmd = &cobra.Command{
 		Use:     "generate-allow",
 		Aliases: []string{"allow", "gen-allow", "gena"},
-		Short:   "A brief description of your command",
+		Short:   "Generates allow/deny rules based on configuration",
 		Run:     run,
 	}
-	nginxReload bool
-	force       bool
+	nginxReload     bool
+	force           bool
+	continueOnError bool
 )
 
 func run(_ *cobra.Command, _ []string) {
@@ -39,20 +41,29 @@ func run(_ *cobra.Command, _ []string) {
 	}
 
 	if len(cfg.Hosts) == 0 {
-		slog.Warn("no hosts configured")
-		os.Exit(1)
+		slog.Error("no hosts configured")
+		os.Exit(pkg.ExitInvalidConfiguration)
 	}
 
 	for ix, host := range cfg.Hosts {
 		if len(host.Dns) == 0 {
 			slog.Warn("Dns field is empty, skipping", "index", ix)
-			continue
+			if continueOnError {
+				continue
+			} else {
+				os.Exit(pkg.ExitGenerationError)
+			}
 		}
 
 		addrs, err := net.LookupIP(host.Dns)
 
 		if err != nil {
-			continue
+			slog.Warn("DNS resolution failed for", "host", host.Dns, "err", err)
+			if continueOnError {
+				continue
+			} else {
+				os.Exit(pkg.ExitGenerationError)
+			}
 		}
 
 		err, s := host.RenderAllowLine(addrs)
@@ -69,7 +80,12 @@ func run(_ *cobra.Command, _ []string) {
 				"error",
 				err.Error(),
 			)
-			continue
+
+			if continueOnError {
+				continue
+			} else {
+				os.Exit(pkg.ExitGenerationError)
+			}
 		}
 
 		slog.Debug(
@@ -85,19 +101,28 @@ func run(_ *cobra.Command, _ []string) {
 }
 
 func init() {
-	generateAllowCmd.Flags().BoolVarP(
+	flags := generateAllowCmd.Flags()
+
+	flags.BoolVarP(
 		&nginxReload,
 		"nginx.reload",
 		"r",
 		true,
 		"Reload nginx configuration if changes are made",
 	)
-	generateAllowCmd.Flags().BoolVarP(
+	flags.BoolVarP(
 		&force,
 		"force",
 		"f",
 		false,
 		"Emit output even if no change is detected",
+	)
+	flags.BoolVarP(
+		&continueOnError,
+		"continue",
+		"C",
+		false,
+		"Continue on any generation error",
 	)
 	rootCmd.AddCommand(generateAllowCmd)
 }
