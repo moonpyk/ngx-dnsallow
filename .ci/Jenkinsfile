@@ -1,0 +1,19 @@
+pipeline {
+    agent {
+        label 'linux'
+    }
+    tools {
+        go '1.24'
+    }
+    options {
+        buildDiscarder logRotator(numToKeepStr: '5')
+        checkoutToSubdirectory 'src'
+    }
+    stages {
+        stage('build') {
+            dir('src') {
+                sh 'go build'
+            }
+        }
+    }
+}
