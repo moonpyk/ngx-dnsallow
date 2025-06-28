@@ -58,7 +58,13 @@ func run(_ *cobra.Command, _ []string) {
 		addrs, err := net.LookupIP(host.Dns)
 
 		if err != nil {
-			slog.Warn("DNS resolution failed for", "host", host.Dns, "err", err)
+			slog.Warn(
+				"DNS resolution failed for",
+				"host",
+				host.Dns,
+				"err",
+				err,
+			)
 			if continueOnError {
 				continue
 			} else {
@@ -97,6 +103,7 @@ func run(_ *cobra.Command, _ []string) {
 			"lines",
 			s,
 		)
+
 	}
 }
 

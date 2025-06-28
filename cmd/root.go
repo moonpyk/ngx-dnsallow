@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"log/slog"
 	"moonpyk.net/ngxdnsallow/pkg"
 	"os"
+	"runtime/debug"
 
 	"github.com/spf13/cobra"
 )
@@ -12,7 +14,8 @@ import (
 var (
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
-		Use: "ngxdnsallow",
+		Use:     "ngxdnsallow",
+		Version: pkg.Version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			levelString := cmd.Flag("log.level").Value.String()
 			level := slog.LevelInfo
@@ -47,10 +50,26 @@ func Execute() {
 }
 
 func init() {
+	commitString := commit()
+	if len(commitString) > 0 {
+		rootCmd.Version = fmt.Sprintf("%s [git: %s]", rootCmd.Version, commitString)
+	}
+
 	rootCmd.PersistentFlags().String("log.level", "info", "Minimum log level")
 
 	rootConfig.SetConfigType("yaml")
 	rootConfig.SetConfigName("ngxdnsallow")
 	rootConfig.AddConfigPath(".")
 	rootConfig.AddConfigPath("/etc/")
+}
+
+func commit() string {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, setting := range info.Settings {
+			if setting.Key == "vcs.revision" {
+				return setting.Value
+			}
+		}
+	}
+	return ""
 }
