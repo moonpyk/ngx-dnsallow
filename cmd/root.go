@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"moonpyk.net/ngxdnsallow/pkg"
+	"moonpyk.net/ngx-dnsallow/pkg"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

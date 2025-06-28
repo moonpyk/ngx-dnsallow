@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"moonpyk.net/ngxdnsallow/pkg"
-	"moonpyk.net/ngxdnsallow/pkg/config"
+	"moonpyk.net/ngx-dnsallow/pkg"
+	"moonpyk.net/ngx-dnsallow/pkg/config"
 )
 
 var (

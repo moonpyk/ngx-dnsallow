@@ -1,9 +1,6 @@
-/*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-*/
 package main
 
-import "moonpyk.net/ngxdnsallow/cmd"
+import "moonpyk.net/ngx-dnsallow/cmd"
 
 func main() {
 	cmd.Execute()
