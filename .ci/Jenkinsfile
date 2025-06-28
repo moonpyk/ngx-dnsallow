@@ -23,7 +23,7 @@ pipeline {
             steps {
                 dir('src') {
                     sh 'mkdir -p ${PUBLISH_DIR}'
-                    sh 'cp src/ngx-dnsallow.sample.yaml ${PUBLISH_DIR}/ngx-dnsallow.yaml'
+                    sh 'cp ngx-dnsallow.sample.yaml ${PUBLISH_DIR}/ngx-dnsallow.yaml'
                     sh 'go build -o ${PUBLISH_DIR}/ngx-dnsallow'
                 }
                 dir(env.PUBLISH_DIR) {
