@@ -5,21 +5,37 @@ pipeline {
     tools {
         go '1.24'
     }
+    environment {
+        HOST_GOARCH = sh(script: 'go env GOARCH', returnStdout: true).trim()
+        PUBLISH_DIR = "${env.WORKSPACE}/publish/${env.HOST_GOARCH}"
+    }
     options {
         buildDiscarder logRotator(numToKeepStr: '5')
         checkoutToSubdirectory 'src'
     }
     stages {
+        stage('env') {
+            steps {
+                sh 'env'
+            }
+        }
         stage('build') {
             steps {
                 dir('src') {
-                    sh 'go build'
+                    sh 'mkdir -p ${PUBLISH_DIR}'
+                    sh 'go build -o ${PUBLISH_DIR}/ngxdnsallow'
+                }
+                dir(env.PUBLISH_DIR) {
+                    zip zipFile:"${env.PUBLISH_DIR}/ngxdnsallow-${env.HOST_GOARCH}.zip"
+                    fingerprint "*"
+                    archiveArtifacts artifacts: '*.zip'
                 }
             }
         }
     }
     post {
         success {
+            sh 'rm -rf publish/'
             dir('src') {
                 sh 'git clean -xdf'
             }
