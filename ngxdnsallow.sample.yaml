@@ -1,0 +1,9 @@
+hosts:
+  - dns: example.net
+    type: A
+  - dns: example.net
+    type: AAAA
+  - dns: example.org
+    type: A
+  - dns: example.org
+    type: AAAA
