@@ -15,7 +15,7 @@ import (
 var (
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
-		Use:     "ngxdnsallow",
+		Use:     "ngx-dnsallow",
 		Version: pkg.Version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			levelString := cmd.Flag("log.level").Value.String()
@@ -23,7 +23,7 @@ var (
 
 			if len(levelString) > 0 {
 				if err := level.UnmarshalText([]byte(levelString)); err != nil {
-					slog.Error("invalid log-level", "level", levelString)
+					slog.Error("invalid log.level", "level", levelString)
 					os.Exit(pkg.ExitInvalidConfiguration)
 				}
 			}
@@ -59,7 +59,7 @@ func init() {
 	rootCmd.PersistentFlags().String("log.level", "info", "Minimum log level")
 
 	rootConfig.SetConfigType("yaml")
-	rootConfig.SetConfigName("ngxdnsallow")
+	rootConfig.SetConfigName("ngx-dnsallow")
 	rootConfig.AddConfigPath(".")
 	rootConfig.AddConfigPath("/etc/")
 }

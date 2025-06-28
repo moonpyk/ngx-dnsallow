@@ -23,10 +23,11 @@ pipeline {
             steps {
                 dir('src') {
                     sh 'mkdir -p ${PUBLISH_DIR}'
-                    sh 'go build -o ${PUBLISH_DIR}/ngxdnsallow'
+                    sh 'cp src/ngx-dnsallow.sample.yaml ${PUBLISH_DIR}/ngx-dnsallow.yaml'
+                    sh 'go build -o ${PUBLISH_DIR}/ngx-dnsallow'
                 }
                 dir(env.PUBLISH_DIR) {
-                    zip zipFile:"${env.PUBLISH_DIR}/ngxdnsallow-${env.HOST_GOARCH}.zip"
+                    zip zipFile:"${env.PUBLISH_DIR}/ngx-dnsallow-${env.HOST_GOARCH}.zip"
                     fingerprint "*"
                     archiveArtifacts artifacts: '*.zip'
                 }
