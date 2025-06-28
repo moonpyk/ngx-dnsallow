@@ -1,28 +1,36 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"fmt"
 	"log/slog"
-	"moonpyk.net/ngxdnsallow/pkg"
-	"moonpyk.net/ngxdnsallow/pkg/config"
 	"net"
 	"os"
+	"strings"
+
+	"github.com/spf13/cobra"
+
+	"moonpyk.net/ngxdnsallow/pkg"
+	"moonpyk.net/ngxdnsallow/pkg/config"
 )
 
 var (
 	// generateAllowCmd represents the generateAllow command
 	generateAllowCmd = &cobra.Command{
-		Use:     "generate-allow",
+		Use:     "generate-allow [destination]",
 		Aliases: []string{"allow", "gen-allow", "gena"},
 		Short:   "Generates allow/deny rules based on configuration",
 		Run:     run,
+		Args:    cobra.MatchAll(cobra.OnlyValidArgs, cobra.MaximumNArgs(1)),
 	}
 	nginxReload     bool
 	force           bool
 	continueOnError bool
 )
 
-func run(_ *cobra.Command, _ []string) {
+func run(cmd *cobra.Command, args []string) {
+	if len(args) == 0 {
+		args = []string{"-"}
+	}
 	rootLogger.Debug(
 		"Using config",
 		"file",
@@ -44,6 +52,16 @@ func run(_ *cobra.Command, _ []string) {
 		slog.Error("no hosts configured")
 		os.Exit(pkg.ExitInvalidConfiguration)
 	}
+
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf(
+		"# This file is managed by %s v%s, manual changes will be overwritten",
+		cmd.Root().Name(),
+		cmd.Root().Version,
+	))
+
+	sb.WriteString("\n\n")
 
 	for ix, host := range cfg.Hosts {
 		if len(host.Dns) == 0 {
@@ -103,7 +121,37 @@ func run(_ *cobra.Command, _ []string) {
 			"lines",
 			s,
 		)
+		sb.WriteString(s)
+	}
 
+	var dest *os.File
+
+	if args[0] == "-" {
+		dest = os.Stdout
+	} else {
+		var (
+			err error
+		)
+		dest, err = os.OpenFile(
+			args[0],
+			os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+			0644,
+		)
+		if err != nil {
+			slog.Error("while opening", "file", args[0], "error", err)
+			os.Exit(pkg.ExitGenerationError)
+			return
+		}
+		defer func() {
+			_ = dest.Close()
+		}()
+	}
+
+	_, err := dest.Write([]byte(sb.String()))
+
+	if err != nil {
+		slog.Error("while writing to", "file", args[0], "error", err)
+		os.Exit(pkg.ExitGenerationError)
 	}
 }
 

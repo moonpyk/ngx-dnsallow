@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"log/slog"
-	"moonpyk.net/ngxdnsallow/pkg"
 	"os"
 	"runtime/debug"
 
+	"moonpyk.net/ngxdnsallow/pkg"
+
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
