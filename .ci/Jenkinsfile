@@ -11,8 +11,10 @@ pipeline {
     }
     stages {
         stage('build') {
-            dir('src') {
-                sh 'go build'
+            steps {
+                dir('src') {
+                    sh 'go build'
+                }
             }
         }
     }
