@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log/slog"
-	"net"
 	"os"
 	"strings"
 
@@ -73,7 +72,7 @@ func run(cmd *cobra.Command, args []string) {
 			}
 		}
 
-		addrs, err := net.LookupIP(host.Dns)
+		resolved, err := host.LookupIP()
 
 		if err != nil {
 			slog.Warn(
@@ -90,7 +89,7 @@ func run(cmd *cobra.Command, args []string) {
 			}
 		}
 
-		err, s := host.RenderAllowLine(addrs)
+		err, s := host.RenderAllowLine(resolved)
 
 		if err != nil {
 			slog.Warn(

@@ -51,6 +51,11 @@ func (e *Entry) EnsureValidMask() int {
 	return e.Mask
 }
 
+// LookupIP looks up the host using the local resolver
+func (e *Entry) LookupIP() ([]net.IP, error) {
+	return net.LookupIP(e.Dns)
+}
+
 // RenderAllowLine Renders a line for the host for a generate-allow generation using [resolved] addresses
 func (e *Entry) RenderAllowLine(resolved []net.IP) (error, string) {
 	if len(resolved) == 0 {
@@ -60,9 +65,8 @@ func (e *Entry) RenderAllowLine(resolved []net.IP) (error, string) {
 	lineType := e.EnsureType()
 
 	switch lineType {
-	case "A":
-	case "AAAA":
-		break
+	case "A",
+		"AAAA":
 	default:
 		return errors.New("invalid dns type \"" + lineType + "\""), ""
 	}
@@ -81,14 +85,13 @@ func (e *Entry) RenderAllowLine(resolved []net.IP) (error, string) {
 		}
 
 		switch {
-		case len(addr) == net.IPv4len && lineType == "A":
-		case len(addr) == net.IPv6len && lineType == "AAAA":
+		case len(addr) == net.IPv4len && lineType == "A",
+			len(addr) == net.IPv6len && lineType == "AAAA":
 			sb.WriteString(e.EnsureVerb() + " " + addr.String())
 			if maskLen > 0 {
 				sb.WriteString("/" + strconv.Itoa(maskLen))
 			}
 			sb.WriteString("; # " + e.Dns + " [" + e.Type + "]\n")
-			break
 		default:
 			continue
 		}
