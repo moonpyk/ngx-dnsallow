@@ -3,6 +3,8 @@ linters:
     default: standard
     enable:
         - sloglint
+        - gocritic
+        - goconst
 
 formatters:
     enable:
