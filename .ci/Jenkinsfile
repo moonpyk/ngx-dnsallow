@@ -22,11 +22,11 @@ pipeline {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                         sh '''golangci-lint run \
                             --output.junit-xml.extended \
-                            --output.junit-xml.path result.xml
+                            --output.junit-xml.path results.xml
                         '''
                     }
                     junit allowEmptyResults: true,
-                          testResults: 'result.xml'
+                          testResults: 'results.xml'
                 }
             }
         }
