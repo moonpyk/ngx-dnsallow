@@ -23,9 +23,9 @@ var (
 		},
 		Args: cobra.MatchAll(cobra.OnlyValidArgs, cobra.MaximumNArgs(1)),
 	}
-	nginxReload     bool
-	force           bool
-	continueOnError bool
+	flagNginxReload     bool
+	flagForce           bool
+	flagContinueOnError bool
 )
 
 func run(cmd *cobra.Command, args []string) int {
@@ -38,9 +38,9 @@ func run(cmd *cobra.Command, args []string) int {
 		"file",
 		rootConfig.ConfigFileUsed(),
 		"nginx.reload",
-		nginxReload,
+		flagNginxReload,
 		"force",
-		force,
+		flagForce,
 	)
 
 	var cfg config.Config
@@ -51,6 +51,7 @@ func run(cmd *cobra.Command, args []string) int {
 
 	if len(cfg.Hosts) == 0 {
 		slog.Error("no hosts configured")
+
 		return pkg.ExitInvalidConfiguration
 	}
 
@@ -68,7 +69,7 @@ func run(cmd *cobra.Command, args []string) int {
 		if len(host.Dns) == 0 {
 			slog.Warn("Dns field is empty, skipping", "index", ix)
 
-			if continueOnError {
+			if flagContinueOnError {
 				continue
 			} else {
 				os.Exit(pkg.ExitGenerationError)
@@ -85,7 +86,7 @@ func run(cmd *cobra.Command, args []string) int {
 				err,
 			)
 
-			if continueOnError {
+			if flagContinueOnError {
 				continue
 			} else {
 				os.Exit(pkg.ExitGenerationError)
@@ -106,7 +107,7 @@ func run(cmd *cobra.Command, args []string) int {
 				err.Error(),
 			)
 
-			if continueOnError {
+			if flagContinueOnError {
 				continue
 			} else {
 				os.Exit(pkg.ExitGenerationError)
@@ -139,6 +140,7 @@ func run(cmd *cobra.Command, args []string) int {
 		)
 		if err != nil {
 			slog.Error("while opening", "file", args[0], "error", err)
+
 			return pkg.ExitGenerationError
 		}
 
@@ -150,6 +152,7 @@ func run(cmd *cobra.Command, args []string) int {
 	_, err := dest.Write([]byte(sb.String()))
 	if err != nil {
 		slog.Error("while writing to", "file", args[0], "error", err)
+
 		return pkg.ExitGenerationError
 	}
 
@@ -160,21 +163,21 @@ func init() {
 	flags := generateAllowCmd.Flags()
 
 	flags.BoolVarP(
-		&nginxReload,
+		&flagNginxReload,
 		"nginx.reload",
 		"r",
 		true,
 		"Reload nginx configuration if changes are made",
 	)
 	flags.BoolVarP(
-		&force,
+		&flagForce,
 		"force",
 		"f",
 		false,
 		"Emit output even if no change is detected",
 	)
 	flags.BoolVarP(
-		&continueOnError,
+		&flagContinueOnError,
 		"continue",
 		"C",
 		false,
