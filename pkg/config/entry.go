@@ -42,16 +42,15 @@ func (e *Entry) EnsureType() string {
 
 // EnsureValidMask ensure a valid mask is given for configurations
 // To avoid nginx configuration warnings, special combinations are handled :
-// for A (IPv4) entries and masks length of 32 a 0 mask is returned
-// for AAAA (IPv6) entries and masks length of 128 a 0 mask is returned
+// for A (IPv4) entries and masks length of 32, a 0 mask is returned
+// for AAAA (IPv6) entries and masks length of 128, a 0 mask is returned
 func (e *Entry) EnsureValidMask() int {
 	lineType := e.EnsureType()
 
-	if lineType == LineTypeA && e.Mask == 32 {
+	switch {
+	case lineType == LineTypeA && e.Mask == 32:
 		return 0
-	}
-
-	if lineType == LineTypeAAAA && e.Mask == 128 {
+	case lineType == LineTypeAAAA && e.Mask == 128:
 		return 0
 	}
 
