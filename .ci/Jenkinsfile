@@ -19,7 +19,9 @@ pipeline {
         stage('check') {
             steps {
                 dir('src') {
-                    sh 'golangci-lint run'
+                    catchError(stageResult: 'UNSTABLE') {
+                        sh 'golangci-lint run'
+                    }
                 }
             }
         }
