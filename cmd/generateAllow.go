@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"moonpyk.net/ngx-dnsallow/pkg"
-	"moonpyk.net/ngx-dnsallow/pkg/config"
+	"moonpyk.net/ngx-dnsallow/pkg/model"
 )
 
 var (
@@ -43,7 +43,7 @@ func run(cmd *cobra.Command, args []string) int {
 		flagForce,
 	)
 
-	var cfg config.Config
+	var cfg model.Config
 
 	if err := rootConfig.Unmarshal(&cfg); err != nil {
 		return pkg.ExitInvalidConfiguration

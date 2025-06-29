@@ -1,4 +1,4 @@
-package config
+package model
 
 type Config struct {
 	Nginx Nginx   `yaml:"nginx"`
