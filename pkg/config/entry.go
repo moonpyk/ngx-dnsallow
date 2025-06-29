@@ -54,6 +54,7 @@ func (e *Entry) EnsureValidMask() int {
 	if lineType == LineTypeAAAA && e.Mask == 128 {
 		return 0
 	}
+
 	return e.Mask
 }
 
@@ -93,9 +94,11 @@ func (e *Entry) RenderAllowLine(resolved []net.IP) (string, error) {
 		case len(addr) == net.IPv4len && lineType == LineTypeA,
 			len(addr) == net.IPv6len && lineType == LineTypeAAAA:
 			sb.WriteString(e.EnsureVerb() + " " + addr.String())
+
 			if maskLen > 0 {
 				sb.WriteString("/" + strconv.Itoa(maskLen))
 			}
+
 			sb.WriteString("; # " + e.Dns + " [" + e.Type + "]\n")
 		default:
 			continue

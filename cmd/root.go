@@ -72,5 +72,6 @@ func commit() string {
 			}
 		}
 	}
+
 	return ""
 }

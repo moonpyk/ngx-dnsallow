@@ -32,6 +32,7 @@ func run(cmd *cobra.Command, args []string) int {
 	if len(args) == 0 {
 		args = []string{"-"}
 	}
+
 	rootLogger.Debug(
 		"Using config",
 		"file",
@@ -66,6 +67,7 @@ func run(cmd *cobra.Command, args []string) int {
 	for ix, host := range cfg.Hosts {
 		if len(host.Dns) == 0 {
 			slog.Warn("Dns field is empty, skipping", "index", ix)
+
 			if continueOnError {
 				continue
 			} else {
@@ -82,6 +84,7 @@ func run(cmd *cobra.Command, args []string) int {
 				"err",
 				err,
 			)
+
 			if continueOnError {
 				continue
 			} else {
@@ -128,6 +131,7 @@ func run(cmd *cobra.Command, args []string) int {
 		dest = os.Stdout
 	} else {
 		var err error
+
 		dest, err = os.OpenFile(
 			args[0],
 			os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
@@ -137,6 +141,7 @@ func run(cmd *cobra.Command, args []string) int {
 			slog.Error("while opening", "file", args[0], "error", err)
 			return pkg.ExitGenerationError
 		}
+
 		defer func() {
 			_ = dest.Close()
 		}()
