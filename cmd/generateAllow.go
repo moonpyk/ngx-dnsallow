@@ -50,9 +50,23 @@ func run(cmd *cobra.Command, args []string) int {
 	}
 
 	if len(cfg.Hosts) == 0 {
-		slog.Error("no hosts configured")
+		rootLogger.Error("no host configured")
 
 		return pkg.ExitInvalidConfiguration
+	}
+
+	if flagNginxReload {
+		if nerr := cfg.Nginx.ConfigTest(); nerr != nil {
+			rootLogger.Error(
+				"nginx pre-config test returned an error, aborting",
+				"error",
+				nerr,
+			)
+
+			return pkg.ExitNginxError
+		}
+
+		rootLogger.Debug("nginx pre-config test succeeded")
 	}
 
 	var sb strings.Builder
@@ -154,6 +168,32 @@ func run(cmd *cobra.Command, args []string) int {
 		slog.Error("while writing to", "file", args[0], "error", err)
 
 		return pkg.ExitGenerationError
+	}
+
+	if flagNginxReload {
+		if nerr := cfg.Nginx.ConfigTest(); nerr != nil {
+			rootLogger.Error(
+				"nginx config test returned an error, aborting",
+				"error",
+				nerr,
+			)
+
+			return pkg.ExitNginxError
+		}
+
+		rootLogger.Debug("nginx config test succeeded")
+
+		if nerr := cfg.Nginx.ConfigReload(); nerr != nil {
+			rootLogger.Error(
+				"nginx config reload returned an error, aborting",
+				"error",
+				nerr,
+			)
+
+			return pkg.ExitNginxError
+		}
+
+		rootLogger.Debug("nginx config reload succeeded")
 	}
 
 	return pkg.ExitSuccess
