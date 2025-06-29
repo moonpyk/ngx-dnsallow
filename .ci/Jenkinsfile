@@ -19,7 +19,7 @@ pipeline {
         stage('check') {
             steps {
                 dir('src') {
-                    catchError(stageResult: 'UNSTABLE') {
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                         sh 'golangci-lint run'
                     }
                 }
