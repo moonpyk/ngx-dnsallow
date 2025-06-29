@@ -4,6 +4,7 @@ pipeline {
     }
     tools {
         go '1.24'
+        generic 'golangci-lint'
     }
     environment {
         HOST_GOARCH = sh(script: 'go env GOARCH', returnStdout: true).trim()
@@ -14,9 +15,11 @@ pipeline {
         checkoutToSubdirectory 'src'
     }
     stages {
-        stage('env') {
+        stage('check') {
             steps {
-                sh 'env'
+                dir('src') {
+                    sh 'golangci-lint run'
+                }
             }
         }
         stage('build') {
