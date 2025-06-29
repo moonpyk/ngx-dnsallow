@@ -25,7 +25,8 @@ pipeline {
                             --output.junit-xml.path result.xml
                         '''
                     }
-                    junit 'result.xml'
+                    junit allowEmptyResults: true,
+                          testResults: 'result.xml'
                 }
             }
         }
