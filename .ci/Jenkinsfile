@@ -20,7 +20,7 @@ pipeline {
             steps {
                 dir('src') {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                        sh 'golangci-lint run --output.junit-xml.path result.xml'
+                        sh 'golangci-lint run --output.junit-xml.extended --output.junit-xml.path result.xml'
                     }
                     junit 'result.xml'
                 }
