@@ -13,6 +13,7 @@ pipeline {
     options {
         buildDiscarder logRotator(numToKeepStr: '5')
         checkoutToSubdirectory 'src'
+        ansiColor('xterm')
     }
     stages {
         stage('check') {
