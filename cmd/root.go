@@ -30,6 +30,11 @@ var (
 
 			slog.SetLogLoggerLevel(level)
 
+			configPath := cmd.Flag("config").Value.String()
+			if len(configPath) > 0 {
+				rootConfig.SetConfigFile(configPath)
+			}
+
 			if err := rootConfig.ReadInConfig(); err != nil {
 				slog.Error(err.Error())
 				os.Exit(pkg.ExitInvalidConfiguration)
@@ -38,6 +43,7 @@ var (
 	}
 	// rootConfig is the program configuration
 	rootConfig = viper.New()
+	// rootLogger is the program default logger
 	rootLogger = slog.Default()
 )
 
@@ -51,17 +57,28 @@ func Execute() {
 }
 
 func init() {
+	rootConfig.SetConfigType("yaml")
+	rootConfig.SetConfigName("ngx-dnsallow")
+	rootConfig.AddConfigPath(".")
+	rootConfig.AddConfigPath("/etc/")
+
 	commitString := commit()
 	if len(commitString) > 0 {
 		rootCmd.Version = fmt.Sprintf("%s [git: %s]", rootCmd.Version, commitString)
 	}
 
-	rootCmd.PersistentFlags().String("log.level", "info", "Minimum log level")
-
-	rootConfig.SetConfigType("yaml")
-	rootConfig.SetConfigName("ngx-dnsallow")
-	rootConfig.AddConfigPath(".")
-	rootConfig.AddConfigPath("/etc/")
+	pflags := rootCmd.PersistentFlags()
+	pflags.StringP(
+		"config",
+		"c",
+		"",
+		"config file path override",
+	)
+	pflags.String(
+		"log.level",
+		"info",
+		"Minimum log level",
+	)
 }
 
 func commit() string {
