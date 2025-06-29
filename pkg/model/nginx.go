@@ -6,9 +6,12 @@ import (
 )
 
 type Nginx struct {
+	// Path is the configured path to nginx binary
+	// if empty, the app will generate a non-empty path before trying to use it
 	Path string `yaml:"path"`
 }
 
+// EnsurePath ensure a non-empty path is configured
 func (n *Nginx) EnsurePath() string {
 	if len(n.Path) == 0 {
 		return "/usr/sbin/nginx"
@@ -17,29 +20,22 @@ func (n *Nginx) EnsurePath() string {
 	return n.Path
 }
 
+// ConfigTest spawns nginx with '-t' checking for any configuration error
 func (n *Nginx) ConfigTest() error {
-	err := n.nginxExecute(
+	return n.nginxExecute(
 		"-t",
 	)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
+// ConfigReload spawns nginx with '-s reload' trying to reload nginx configuration
 func (n *Nginx) ConfigReload() error {
-	err := n.nginxExecute(
+	return n.nginxExecute(
 		"-s",
 		"reload",
 	)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
+// nginxExecute is a utility helper to spawn nginx process and checking returned status code
 func (n *Nginx) nginxExecute(args ...string) error {
 	command := exec.Command(n.EnsurePath(), args...)
 
