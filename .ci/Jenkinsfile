@@ -42,10 +42,12 @@ pipeline {
     }
     post {
         success {
-            sh 'rm -rf publish/'
             dir('src') {
                 sh 'git clean -xdf'
             }
+        }
+        always {
+            sh 'rm -rf publish/'
         }
     }
 }
