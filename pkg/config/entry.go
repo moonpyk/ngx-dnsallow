@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+const (
+	LineTypeA    = `A`
+	LineTypeAAAA = `AAAA`
+	VerbAllow    = "allow"
+)
+
 type Entry struct {
 	Dns       string `yaml:"dns"`
 	Type      string `yaml:"type"`
@@ -18,7 +24,7 @@ type Entry struct {
 // defaulting to "allow" if it was configured empty
 func (e *Entry) EnsureVerb() string {
 	if e.AllowVerb == "" {
-		return "allow"
+		return VerbAllow
 	}
 
 	return e.AllowVerb
@@ -28,7 +34,7 @@ func (e *Entry) EnsureVerb() string {
 // defaulting to "A" if it was configured empty
 func (e *Entry) EnsureType() string {
 	if len(e.Type) == 0 {
-		return "A"
+		return LineTypeA
 	}
 
 	return e.Type
@@ -41,11 +47,11 @@ func (e *Entry) EnsureType() string {
 func (e *Entry) EnsureValidMask() int {
 	lineType := e.EnsureType()
 
-	if lineType == "A" && e.Mask == 32 {
+	if lineType == LineTypeA && e.Mask == 32 {
 		return 0
 	}
 
-	if lineType == "AAAA" && e.Mask == 128 {
+	if lineType == LineTypeAAAA && e.Mask == 128 {
 		return 0
 	}
 	return e.Mask
@@ -65,7 +71,7 @@ func (e *Entry) RenderAllowLine(resolved []net.IP) (string, error) {
 	lineType := e.EnsureType()
 
 	switch lineType {
-	case "A", "AAAA":
+	case LineTypeA, LineTypeAAAA:
 	default:
 		return "", errors.New("invalid dns type \"" + lineType + "\"")
 	}
@@ -84,8 +90,8 @@ func (e *Entry) RenderAllowLine(resolved []net.IP) (string, error) {
 		}
 
 		switch {
-		case len(addr) == net.IPv4len && lineType == "A",
-			len(addr) == net.IPv6len && lineType == "AAAA":
+		case len(addr) == net.IPv4len && lineType == LineTypeA,
+			len(addr) == net.IPv6len && lineType == LineTypeAAAA:
 			sb.WriteString(e.EnsureVerb() + " " + addr.String())
 			if maskLen > 0 {
 				sb.WriteString("/" + strconv.Itoa(maskLen))

@@ -18,15 +18,17 @@ var (
 		Use:     "generate-allow [destination]",
 		Aliases: []string{"allow", "gen-allow", "gena"},
 		Short:   "Generates allow/deny rules based on configuration",
-		Run:     run,
-		Args:    cobra.MatchAll(cobra.OnlyValidArgs, cobra.MaximumNArgs(1)),
+		Run: func(cmd *cobra.Command, args []string) {
+			os.Exit(run(cmd, args))
+		},
+		Args: cobra.MatchAll(cobra.OnlyValidArgs, cobra.MaximumNArgs(1)),
 	}
 	nginxReload     bool
 	force           bool
 	continueOnError bool
 )
 
-func run(cmd *cobra.Command, args []string) {
+func run(cmd *cobra.Command, args []string) int {
 	if len(args) == 0 {
 		args = []string{"-"}
 	}
@@ -43,13 +45,12 @@ func run(cmd *cobra.Command, args []string) {
 	var cfg config.Config
 
 	if err := rootConfig.Unmarshal(&cfg); err != nil {
-		os.Exit(1)
-		return
+		return pkg.ExitInvalidConfiguration
 	}
 
 	if len(cfg.Hosts) == 0 {
 		slog.Error("no hosts configured")
-		os.Exit(pkg.ExitInvalidConfiguration)
+		return pkg.ExitInvalidConfiguration
 	}
 
 	var sb strings.Builder
@@ -134,8 +135,7 @@ func run(cmd *cobra.Command, args []string) {
 		)
 		if err != nil {
 			slog.Error("while opening", "file", args[0], "error", err)
-			os.Exit(pkg.ExitGenerationError)
-			return
+			return pkg.ExitGenerationError
 		}
 		defer func() {
 			_ = dest.Close()
@@ -145,8 +145,10 @@ func run(cmd *cobra.Command, args []string) {
 	_, err := dest.Write([]byte(sb.String()))
 	if err != nil {
 		slog.Error("while writing to", "file", args[0], "error", err)
-		os.Exit(pkg.ExitGenerationError)
+		return pkg.ExitGenerationError
 	}
+
+	return pkg.ExitSuccess
 }
 
 func init() {
