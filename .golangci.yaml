@@ -5,6 +5,8 @@ linters:
         - sloglint
         - gocritic
         - goconst
+        - funcorder
+        - usestdlibvars
 
 formatters:
     enable:
