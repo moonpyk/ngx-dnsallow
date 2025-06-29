@@ -73,7 +73,6 @@ func run(cmd *cobra.Command, args []string) {
 		}
 
 		resolved, err := host.LookupIP()
-
 		if err != nil {
 			slog.Warn(
 				"DNS resolution failed for",
@@ -89,8 +88,7 @@ func run(cmd *cobra.Command, args []string) {
 			}
 		}
 
-		err, s := host.RenderAllowLine(resolved)
-
+		s, err := host.RenderAllowLine(resolved)
 		if err != nil {
 			slog.Warn(
 				"rendering error",
@@ -128,13 +126,11 @@ func run(cmd *cobra.Command, args []string) {
 	if args[0] == "-" {
 		dest = os.Stdout
 	} else {
-		var (
-			err error
-		)
+		var err error
 		dest, err = os.OpenFile(
 			args[0],
 			os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-			0644,
+			0o644,
 		)
 		if err != nil {
 			slog.Error("while opening", "file", args[0], "error", err)
@@ -147,7 +143,6 @@ func run(cmd *cobra.Command, args []string) {
 	}
 
 	_, err := dest.Write([]byte(sb.String()))
-
 	if err != nil {
 		slog.Error("while writing to", "file", args[0], "error", err)
 		os.Exit(pkg.ExitGenerationError)

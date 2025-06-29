@@ -57,18 +57,17 @@ func (e *Entry) LookupIP() ([]net.IP, error) {
 }
 
 // RenderAllowLine Renders a line for the host for a generate-allow generation using [resolved] addresses
-func (e *Entry) RenderAllowLine(resolved []net.IP) (error, string) {
+func (e *Entry) RenderAllowLine(resolved []net.IP) (string, error) {
 	if len(resolved) == 0 {
-		return errors.New("no addresses resolved"), ""
+		return "", errors.New("no addresses resolved")
 	}
 
 	lineType := e.EnsureType()
 
 	switch lineType {
-	case "A",
-		"AAAA":
+	case "A", "AAAA":
 	default:
-		return errors.New("invalid dns type \"" + lineType + "\""), ""
+		return "", errors.New("invalid dns type \"" + lineType + "\"")
 	}
 
 	maskLen := e.EnsureValidMask()
@@ -98,8 +97,8 @@ func (e *Entry) RenderAllowLine(resolved []net.IP) (error, string) {
 	}
 
 	if sb.Len() == 0 {
-		return errors.New("yielded no result"), ""
+		return "", errors.New("yielded no result")
 	}
 
-	return nil, sb.String()
+	return sb.String(), nil
 }
