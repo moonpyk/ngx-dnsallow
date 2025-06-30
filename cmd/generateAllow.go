@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"strings"
+
+	"github.com/udhos/equalfile"
 
 	"github.com/spf13/cobra"
 
@@ -56,11 +59,11 @@ func run(cmd *cobra.Command, args []string) int {
 	}
 
 	if flagNginxReload {
-		if nerr := cfg.Nginx.ConfigTest(); nerr != nil {
+		if err := cfg.Nginx.ConfigTest(); err != nil {
 			rootLogger.Error(
 				"nginx pre-config test returned an error, aborting",
 				"error",
-				nerr,
+				err,
 			)
 
 			return pkg.ExitNginxError
@@ -142,14 +145,12 @@ func run(cmd *cobra.Command, args []string) int {
 
 	var dest *os.File
 
-	if args[0] == "-" {
-		dest = os.Stdout
-	} else {
+	if args[0] != "-" {
 		var err error
 
 		dest, err = os.OpenFile(
 			args[0],
-			os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+			os.O_CREATE|os.O_RDWR,
 			0o644,
 		)
 		if err != nil {
@@ -161,9 +162,62 @@ func run(cmd *cobra.Command, args []string) int {
 		defer func() {
 			_ = dest.Close()
 		}()
+	} else {
+		dest = os.Stdout
 	}
 
-	_, err := dest.Write([]byte(sb.String()))
+	result := sb.String()
+
+	if dest != os.Stdout {
+		if !flagForce {
+			cmp := equalfile.New(nil, equalfile.Options{})
+
+			equal, err := cmp.CompareReader(
+				dest,
+				strings.NewReader(result),
+			)
+			if err == nil && equal {
+				rootLogger.Debug("destination and current output are equal, no need to continue")
+
+				return pkg.ExitSuccess
+			}
+		}
+
+		if err := dest.Truncate(0); err != nil {
+			rootLogger.Error(
+				"error while truncating",
+				"file",
+				dest.Name(),
+				"error",
+				err,
+			)
+
+			return pkg.ExitGenerationError
+		}
+
+		slog.Info(
+			"configuration changed or is new, writing to",
+			"file",
+			dest.Name(),
+			"force",
+			flagForce,
+		)
+
+		// really, we don't await an error here, but as good practice...
+		if _, err := dest.Seek(0, io.SeekStart); err != nil {
+			slog.Error(
+				"error while seeking to the beginning of the",
+				"file",
+				dest.Name(),
+				"error",
+				err,
+			)
+
+			return pkg.ExitGenerationError
+		}
+	}
+
+	_, err := dest.Write([]byte(result))
 	if err != nil {
 		slog.Error("while writing to", "file", args[0], "error", err)
 
@@ -171,11 +225,11 @@ func run(cmd *cobra.Command, args []string) int {
 	}
 
 	if flagNginxReload {
-		if nerr := cfg.Nginx.ConfigTest(); nerr != nil {
+		if err = cfg.Nginx.ConfigTest(); err != nil {
 			rootLogger.Error(
 				"nginx config test returned an error, aborting",
 				"error",
-				nerr,
+				err,
 			)
 
 			return pkg.ExitNginxError
@@ -183,11 +237,11 @@ func run(cmd *cobra.Command, args []string) int {
 
 		rootLogger.Debug("nginx config test succeeded")
 
-		if nerr := cfg.Nginx.ConfigReload(); nerr != nil {
+		if err = cfg.Nginx.ConfigReload(); err != nil {
 			rootLogger.Error(
 				"nginx config reload returned an error, aborting",
 				"error",
-				nerr,
+				err,
 			)
 
 			return pkg.ExitNginxError
