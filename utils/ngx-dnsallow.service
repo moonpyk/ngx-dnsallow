@@ -1,0 +1,9 @@
+[Unit]
+Description=ngx-dnsallow
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ngx-dnsallow generate-allow
+User=root
+Group=root
+RemainAfterExit=true
