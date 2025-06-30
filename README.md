@@ -5,4 +5,5 @@ It is particularly useful for restrict/allow access of clients with dynamic IPs 
 
 ## Ideas
  - Possibility to use sudo/doas instead of running as root (become_method, become_user)
+ - Generate rules as geo maps
  - Profiles support, to generate only subset of rules
