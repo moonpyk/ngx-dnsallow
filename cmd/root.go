@@ -23,7 +23,7 @@ var (
 
 			if len(levelString) > 0 {
 				if err := level.UnmarshalText([]byte(levelString)); err != nil {
-					slog.Error("invalid log.level", "level", levelString)
+					rootLogger.Error("invalid log.level", "level", levelString)
 					os.Exit(pkg.ExitInvalidConfiguration)
 				}
 			}
@@ -36,7 +36,7 @@ var (
 			}
 
 			if err := rootConfig.ReadInConfig(); err != nil {
-				slog.Error(err.Error())
+				rootLogger.Error(err.Error())
 				os.Exit(pkg.ExitInvalidConfiguration)
 			}
 		},

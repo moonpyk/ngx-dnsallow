@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
 	"strings"
 
@@ -84,18 +83,18 @@ func run(cmd *cobra.Command, args []string) int {
 
 	for ix, host := range cfg.Hosts {
 		if len(host.Dns) == 0 {
-			slog.Warn("Dns field is empty, skipping", "index", ix)
+			rootLogger.Warn("Dns field is empty, skipping", "index", ix)
 
 			if flagContinueOnError {
 				continue
 			} else {
-				os.Exit(pkg.ExitGenerationError)
+				return pkg.ExitGenerationError
 			}
 		}
 
 		resolved, err := host.LookupIP()
 		if err != nil {
-			slog.Warn(
+			rootLogger.Warn(
 				"DNS resolution failed for",
 				"host",
 				host.Dns,
@@ -106,13 +105,13 @@ func run(cmd *cobra.Command, args []string) int {
 			if flagContinueOnError {
 				continue
 			} else {
-				os.Exit(pkg.ExitGenerationError)
+				return (pkg.ExitGenerationError)
 			}
 		}
 
 		s, err := host.RenderAllowLine(resolved)
 		if err != nil {
-			slog.Warn(
+			rootLogger.Warn(
 				"rendering error",
 				"index",
 				ix,
@@ -127,11 +126,11 @@ func run(cmd *cobra.Command, args []string) int {
 			if flagContinueOnError {
 				continue
 			} else {
-				os.Exit(pkg.ExitGenerationError)
+				return pkg.ExitGenerationError
 			}
 		}
 
-		slog.Debug(
+		rootLogger.Debug(
 			"generated",
 			"index",
 			ix,
@@ -154,7 +153,13 @@ func run(cmd *cobra.Command, args []string) int {
 			0o644,
 		)
 		if err != nil {
-			slog.Error("while opening", "file", args[0], "error", err)
+			rootLogger.Error(
+				"while opening",
+				"file",
+				args[0],
+				"error",
+				err,
+			)
 
 			return pkg.ExitGenerationError
 		}
@@ -195,7 +200,7 @@ func run(cmd *cobra.Command, args []string) int {
 			return pkg.ExitGenerationError
 		}
 
-		slog.Info(
+		rootLogger.Info(
 			"configuration changed or is new, writing to",
 			"file",
 			dest.Name(),
@@ -205,7 +210,7 @@ func run(cmd *cobra.Command, args []string) int {
 
 		// really, we don't await an error here, but as good practice...
 		if _, err := dest.Seek(0, io.SeekStart); err != nil {
-			slog.Error(
+			rootLogger.Error(
 				"error while seeking to the beginning of the",
 				"file",
 				dest.Name(),
@@ -219,7 +224,7 @@ func run(cmd *cobra.Command, args []string) int {
 
 	_, err := dest.Write([]byte(result))
 	if err != nil {
-		slog.Error("while writing to", "file", args[0], "error", err)
+		rootLogger.Error("while writing to", "file", args[0], "error", err)
 
 		return pkg.ExitGenerationError
 	}
