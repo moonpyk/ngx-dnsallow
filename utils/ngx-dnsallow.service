@@ -6,5 +6,4 @@ Type=oneshot
 ExecStart=/usr/local/bin/ngx-dnsallow generate-allow $DESTINATION
 User=root
 Group=root
-RemainAfterExit=true
 EnvironmentFile=/etc/default/ngx-dnsallow
