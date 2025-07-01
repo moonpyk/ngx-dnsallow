@@ -13,10 +13,8 @@ import (
 )
 
 var (
-	// rootConfig is the program configuration
-	rootConfig = viper.New()
-	// rootLogger is the program default logger
-	rootLogger = slog.Default()
+	rootConfig = viper.New()    // rootConfig is the program configuration
+	rootLogger = slog.Default() // rootLogger is the program default logger
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
 		Use:     "ngx-dnsallow",
@@ -83,6 +81,7 @@ func init() {
 	)
 }
 
+// gitCommit returns the current git commit hash if available
 func gitCommit() string {
 	if info, ok := debug.ReadBuildInfo(); ok {
 		for _, setting := range info.Settings {

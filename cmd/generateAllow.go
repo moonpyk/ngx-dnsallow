@@ -105,7 +105,7 @@ func run(cmd *cobra.Command, args []string) int {
 			if flagContinueOnError {
 				continue
 			} else {
-				return (pkg.ExitGenerationError)
+				return pkg.ExitGenerationError
 			}
 		}
 
