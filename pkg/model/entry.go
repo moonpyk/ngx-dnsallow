@@ -13,11 +13,12 @@ const (
 	VerbAllow    = "allow"
 )
 
+// Entry represents a host entry that will be transformed in nginx configuration
 type Entry struct {
-	Hostname  string `yaml:"hostname"`
-	Type      string `yaml:"type"`
-	Mask      int    `yaml:"mask,omitempty"`
-	AllowVerb string `yaml:"allowverb,omitempty"`
+	Hostname  string `yaml:"hostname"`            // Hostname is the DNS name of the entry.
+	Type      string `yaml:"type"`                // Type is the DNS record type (A or AAAA).
+	Mask      int    `yaml:"mask,omitempty"`      // Mask is the subnet mask length (can be 0).
+	AllowVerb string `yaml:"allowverb,omitempty"` // AllowVerb is the verb used by generate-allow command, defaults to "allow".
 }
 
 // EnsureVerb ensures a verb is given for generate-allow configurations
@@ -40,7 +41,7 @@ func (e *Entry) EnsureType() string {
 	return e.Type
 }
 
-// EnsureValidMask ensure a valid mask is given for configurations
+// EnsureValidMask ensures a valid mask is given for configurations
 // To avoid nginx configuration warnings, special combinations are handled :
 // for A (IPv4) entries and masks length of 32, a 0 mask is returned
 // for AAAA (IPv6) entries and masks length of 128, a 0 mask is returned
@@ -57,12 +58,13 @@ func (e *Entry) EnsureValidMask() int {
 	return e.Mask
 }
 
-// LookupIP looks up the host using the local resolver
+// LookupIP looks up the host using the local resolver and returns a slice of IP addresses.
 func (e *Entry) LookupIP() ([]net.IP, error) {
 	return net.LookupIP(e.Hostname)
 }
 
-// RenderAllowLine Renders a line for the host for a generate-allow generation using [resolved] addresses
+// RenderAllowLine renders a line for the host for a generate-allow generation using resolved addresses.
+// Returns the rendered line or an error if no addresses are resolved or the type is invalid.
 func (e *Entry) RenderAllowLine(resolved []net.IP) (string, error) {
 	if len(resolved) == 0 {
 		return "", errors.New("no addresses resolved")

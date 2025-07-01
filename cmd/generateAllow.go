@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	// generateAllowCmd represents the generateAllow command
+	// generateAllowCmd represents the generate-allow command
 	generateAllowCmd = &cobra.Command{
 		Use:     "generate-allow [destination]",
 		Aliases: []string{"allow", "gen-allow", "gena"},
@@ -25,9 +25,9 @@ var (
 		},
 		Args: cobra.MatchAll(cobra.OnlyValidArgs, cobra.MaximumNArgs(1)),
 	}
-	flagNginxReload     bool
-	flagForce           bool
-	flagContinueOnError bool
+	flagNginxReload     bool // flagNginxReload indicates whether to reload nginx configuration after generation
+	flagForce           bool // flagForce indicates whether to force output even if no changes are detected
+	flagContinueOnError bool // flagContinueOnError indicates whether to continue processing even if an error occurs
 )
 
 func run(cmd *cobra.Command, args []string) int {

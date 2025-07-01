@@ -5,6 +5,7 @@ import (
 	"os/exec"
 )
 
+// Nginx represents holds nginx related configuration
 type Nginx struct {
 	// Path is the configured path to nginx binary
 	// if empty, the app will generate a non-empty path before trying to use it
