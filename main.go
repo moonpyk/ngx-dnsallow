@@ -1,7 +1,11 @@
 package main
 
-import "moonpyk.net/ngx-dnsallow/cmd"
+import (
+	"os"
+
+	"moonpyk.net/ngx-dnsallow/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	os.Exit(cmd.Execute())
 }

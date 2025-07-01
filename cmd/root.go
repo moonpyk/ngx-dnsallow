@@ -13,6 +13,10 @@ import (
 )
 
 var (
+	// rootConfig is the program configuration
+	rootConfig = viper.New()
+	// rootLogger is the program default logger
+	rootLogger = slog.Default()
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
 		Use:     "ngx-dnsallow",
@@ -41,19 +45,17 @@ var (
 			}
 		},
 	}
-	// rootConfig is the program configuration
-	rootConfig = viper.New()
-	// rootLogger is the program default logger
-	rootLogger = slog.Default()
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute() int {
 	err := rootCmd.Execute()
 	if err != nil {
-		os.Exit(1)
+		return 1
 	}
+
+	return 0
 }
 
 func init() {
@@ -62,7 +64,7 @@ func init() {
 	rootConfig.AddConfigPath(".")
 	rootConfig.AddConfigPath("/etc/")
 
-	commitString := commit()
+	commitString := gitCommit()
 	if len(commitString) > 0 {
 		rootCmd.Version = fmt.Sprintf("%s [git: %s]", rootCmd.Version, commitString)
 	}
@@ -81,7 +83,7 @@ func init() {
 	)
 }
 
-func commit() string {
+func gitCommit() string {
 	if info, ok := debug.ReadBuildInfo(); ok {
 		for _, setting := range info.Settings {
 			if setting.Key == "vcs.revision" {
