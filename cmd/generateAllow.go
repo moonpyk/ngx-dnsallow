@@ -82,8 +82,8 @@ func run(cmd *cobra.Command, args []string) int {
 	sb.WriteString("\n\n")
 
 	for ix, host := range cfg.Hosts {
-		if len(host.Dns) == 0 {
-			rootLogger.Warn("Dns field is empty, skipping", "index", ix)
+		if len(host.Hostname) == 0 {
+			rootLogger.Warn("Hostname field is empty, skipping", "index", ix)
 
 			if flagContinueOnError {
 				continue
@@ -97,7 +97,7 @@ func run(cmd *cobra.Command, args []string) int {
 			rootLogger.Warn(
 				"DNS resolution failed for",
 				"host",
-				host.Dns,
+				host.Hostname,
 				"err",
 				err,
 			)
@@ -116,7 +116,7 @@ func run(cmd *cobra.Command, args []string) int {
 				"index",
 				ix,
 				"host",
-				host.Dns,
+				host.Hostname,
 				"type",
 				host.EnsureType(),
 				"error",
@@ -135,7 +135,7 @@ func run(cmd *cobra.Command, args []string) int {
 			"index",
 			ix,
 			"host",
-			host.Dns,
+			host.Hostname,
 			"lines",
 			s,
 		)

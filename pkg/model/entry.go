@@ -14,7 +14,7 @@ const (
 )
 
 type Entry struct {
-	Dns       string `yaml:"dns"`
+	Hostname  string `yaml:"hostname"`
 	Type      string `yaml:"type"`
 	Mask      int    `yaml:"mask,omitempty"`
 	AllowVerb string `yaml:"allowverb,omitempty"`
@@ -59,7 +59,7 @@ func (e *Entry) EnsureValidMask() int {
 
 // LookupIP looks up the host using the local resolver
 func (e *Entry) LookupIP() ([]net.IP, error) {
-	return net.LookupIP(e.Dns)
+	return net.LookupIP(e.Hostname)
 }
 
 // RenderAllowLine Renders a line for the host for a generate-allow generation using [resolved] addresses
@@ -98,7 +98,7 @@ func (e *Entry) RenderAllowLine(resolved []net.IP) (string, error) {
 				sb.WriteString("/" + strconv.Itoa(maskLen))
 			}
 
-			sb.WriteString("; # " + e.Dns + " [" + e.Type + "]\n")
+			sb.WriteString("; # " + e.Hostname + " [" + e.Type + "]\n")
 		default:
 			continue
 		}
